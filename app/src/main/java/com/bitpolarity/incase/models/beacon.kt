@@ -1,20 +1,27 @@
 package com.bitpolarity.incase.models
 
+import android.os.Parcel
+import android.os.Parcelable
 import com.bitpolarity.incase.R
 
-data class Beacon(val message : String?, val priority : Int, val sender : String){
+data class Beacon(val message : String?, val priority : Int, val sender : String) : Parcelable{
+
+    constructor(parcel: Parcel) : this(
+        parcel.readString(),
+        parcel.readInt(),
+        parcel.readString()!!
+    )
 
     fun haveToRing():Boolean{
         return priority>0
     }
 
 
-
     fun priorityTitle():String{
         when(priority){
             0-> return "Low alert"
             1-> return "Medium alert"
-            2-> return "High alert"
+            2-> return "Urgent - Requires immediate attention"
             else-> return "Invalid alert level"
         }
     }
@@ -28,6 +35,25 @@ data class Beacon(val message : String?, val priority : Int, val sender : String
         }
     }
 
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(message)
+        parcel.writeInt(priority)
+        parcel.writeString(sender)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<Beacon> {
+        override fun createFromParcel(parcel: Parcel): Beacon {
+            return Beacon(parcel)
+        }
+
+        override fun newArray(size: Int): Array<Beacon?> {
+            return arrayOfNulls(size)
+        }
+    }
 
 
 }

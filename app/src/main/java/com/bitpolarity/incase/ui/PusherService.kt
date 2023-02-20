@@ -1,20 +1,21 @@
-package com.bitpolarity.incase
+package com.bitpolarity.incase.ui
 
 import android.app.*
 import android.content.Context
 import android.content.Intent
-import android.graphics.PixelFormat
 import android.media.MediaPlayer
 import android.os.Binder
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
 import android.util.Log
-import android.view.ViewGroup
-import android.view.WindowManager
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import androidx.core.view.ContentInfoCompat.Flags
+import androidx.lifecycle.ViewModelProvider
+import com.bitpolarity.incase.R
 import com.bitpolarity.incase.models.Beacon
+import com.bitpolarity.incase.ui.lockscreen.LockScreenActivity
+import com.bitpolarity.incase.ui.lockscreen.LockScreenViewModel
 import com.google.gson.Gson
 import com.pusher.client.Pusher
 import com.pusher.client.PusherOptions
@@ -33,12 +34,20 @@ class PusherService : Service() {
     val channelID = "2"
     val gson = Gson()
     lateinit var notificationManager : NotificationManager
+    lateinit var viewModel: LockScreenViewModel
+    private lateinit var handler: Handler
 
 
     override fun onBind(intent: Intent): IBinder? {
         return null
     }
 
+
+    fun updateBeacon(beacon: Beacon){
+       handler.post{
+           viewModel.setBeacon(beacon)
+       }
+    }
 
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -62,10 +71,7 @@ class PusherService : Service() {
             }
         }, ConnectionState.ALL)
 
-
-        createChannelAndNotificationManager()
-
-
+        Init()
         channel = pusher.subscribe("sexy-channel69")
         showServiceNotification()
 
@@ -87,8 +93,13 @@ class PusherService : Service() {
         return START_STICKY
     }
 
-    private fun createChannelAndNotificationManager() {
-         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    private fun Init() {
+
+        handler = Handler(mainLooper)
+        mediaPlayer = MediaPlayer()
+        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        viewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(application).create(LockScreenViewModel::class.java)
+
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channelId = "my-channel"
@@ -103,9 +114,10 @@ class PusherService : Service() {
 
     private fun ring(tone:Int){
 
-//        if (mediaPlayermediaPlayer.isPlaying){
-//            mediaPlayer.stop()
-//        }
+        if (mediaPlayer.isPlaying)
+        {
+            mediaPlayer.stop()
+        }
 
         if (tone==1){
 
@@ -116,7 +128,6 @@ class PusherService : Service() {
             mediaPlayer = MediaPlayer.create(this, R.raw.siren)
             mediaPlayer.start()
         }
-
 
     }
 
@@ -129,7 +140,7 @@ class PusherService : Service() {
         val notificationBuilder = NotificationCompat.Builder(this, "my-channel")
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("InCase")
-            .setContentText("Incase : Everything is fine")
+            .setContentText("Everything is fine")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(contentPendingIntent)
             .setAutoCancel(true)
@@ -155,10 +166,12 @@ class PusherService : Service() {
 
 
 
+        //updateBeacon(beacon)
         val fullScreenIntent = Intent(this, LockScreenActivity::class.java)
-        fullScreenIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        startActivity(fullScreenIntent)
+        fullScreenIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
 
+        fullScreenIntent.putExtra("beacon",beacon)
+        startActivity(fullScreenIntent)
 
         val notificationId = 1
         val intent = Intent(this, MainActivity::class.java)
@@ -193,3 +206,5 @@ class PusherService : Service() {
     }
 
 }
+
+

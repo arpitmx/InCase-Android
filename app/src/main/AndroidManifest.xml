@@ -9,6 +9,8 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.SYSTEM_OVERLAY_WINDOW" />
     <uses-permission android:name="android.permission.PHONE_STATE_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS"/>
+
 
 
 
@@ -25,27 +27,26 @@
         tools:targetApi="31">
 
         <activity
-            android:name=".LockScreenActivity"
-            android:launchMode="singleTop"
+            android:name=".ui.lockscreen.LockScreenActivity"
             android:showOnLockScreen="true"
             android:screenOrientation="sensorPortrait"
-            android:excludeFromRecents="true"
+            android:excludeFromRecents="false"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
             android:showForAllUsers="true"
-            android:exported="true">
+            android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
 
         <service
-            android:name=".PusherService"
+            android:name=".ui.PusherService"
             android:enabled="true"
             android:exported="true" />
 
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
