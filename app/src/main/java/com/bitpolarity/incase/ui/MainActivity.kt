@@ -2,6 +2,7 @@ package com.bitpolarity.incase.ui
 
 import android.Manifest.permission.RECEIVE_SMS
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -9,6 +10,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.bitpolarity.incase.R
 import com.bitpolarity.incase.databinding.ActivityMainBinding
+import com.bitpolarity.incase.reciever.SMSReciever
 import com.pusher.client.Pusher
 import com.pusher.client.PusherOptions
 import com.pusher.client.connection.ConnectionEventListener
@@ -26,8 +28,8 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        getPermissions()
-
+        //getPermissions()
+        //setSMSReciever()
         stopService(Intent(this, PusherService::class.java))
         val options = PusherOptions()
         options.setCluster("ap2")
@@ -58,6 +60,15 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    val smsReceiver = SMSReciever()
+
+
+
+    private fun setSMSReciever() {
+        val filter = IntentFilter("android.provider.Telephony.SMS_RECEIVED")
+        registerReceiver(smsReceiver, filter)
+    }
+
     fun display (text: String){
         runOnUiThread {
             binding.text.text = text
@@ -66,6 +77,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        //unregisterReceiver(smsReceiver)
         startService(Intent(this, PusherService::class.java))
 
     }
